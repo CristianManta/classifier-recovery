@@ -470,8 +470,8 @@ class DEMLitModule(LightningModule):
         num_samples = num_samples or self.num_samples_to_generate_per_epoch
 
         samples = self.prior.sample(num_samples)
-
-        return self.integrate(
+        
+        ret = self.integrate(
             reverse_sde=reverse_sde,
             samples=samples,
             reverse_time=True,
@@ -479,6 +479,8 @@ class DEMLitModule(LightningModule):
             diffusion_scale=diffusion_scale,
             negative_time=negative_time,
         )
+
+        return ret # shape: (num_samples_to_generate_per_epoch, dimensionality)
 
     def integrate(
         self,

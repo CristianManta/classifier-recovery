@@ -2,7 +2,6 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import torch
-from fab.target_distributions import gmm
 from fab.utils.plotting import plot_contours, plot_marginal_pair
 from lightning.pytorch.loggers import WandbLogger
 
@@ -11,6 +10,7 @@ from dem.models.components.replay_buffer import ReplayBuffer
 from dem.utils.logging_utils import fig_to_image
 
 from utils.main import ModifiedResNet18
+import torchvision.transforms as transforms
 
 
 class Classifier(BaseEnergyFunction):
@@ -29,17 +29,10 @@ class Classifier(BaseEnergyFunction):
         train_set_size=100000,
         test_set_size=2000,
         val_set_size=2000,
+        cls=0 # index of the class that we want to sample from
     ):
         use_gpu = device != "cpu"
-        torch.manual_seed(0)  # seed of 0 for GMM problem
-        self.gmm = gmm.GMM(
-            dim=dimensionality,
-            n_mixes=n_mixes,
-            loc_scaling=loc_scaling,
-            log_var_scaling=log_var_scaling,
-            use_gpu=use_gpu,
-            true_expectation_estimation_n_samples=true_expectation_estimation_n_samples,
-        )
+        torch.manual_seed(0)
 
         self.curr_epoch = 0
         self.device = device
@@ -53,7 +46,14 @@ class Classifier(BaseEnergyFunction):
         self.test_set_size = test_set_size
         self.val_set_size = val_set_size
 
-        self.name = "gmm"
+        self.name = "classifier"
+        self.cls = cls
+        
+        self.classifier = ModifiedResNet18(num_classes=10).to(self.device).eval()
+        self.transform = transforms.Compose([
+            transforms.Resize(224),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
 
         super().__init__(
             dimensionality=dimensionality,
@@ -62,27 +62,26 @@ class Classifier(BaseEnergyFunction):
         )
 
     def setup_test_set(self):
-        # test_sample = self.gmm.sample((self.test_set_size,))
-        # return test_sample
-        return self.gmm.test_set
+        return torch.rand(1000, self.dimensionality, device=self.device) # shape: (1000, dimensionality), dtype=torch.float32, device=self.device
 
     def setup_train_set(self):
-        train_samples = self.gmm.sample((self.train_set_size,))
+        train_samples = torch.rand(self.train_set_size, self.dimensionality, device=self.device)
         return self.normalize(train_samples)
 
     def setup_val_set(self):
-        val_samples = self.gmm.sample((self.val_set_size,))
-        return val_samples
+        val_samples = torch.rand(self.val_set_size, self.dimensionality, device=self.device)
+        return val_samples # shape: (2000, dimensionality), dtype=torch.float32, device=self.device
 
     def __call__(self, samples: torch.Tensor) -> torch.Tensor:
         if self.should_unnormalize:
             samples = self.unnormalize(samples)
 
-        return self.gmm.log_prob(samples)
+        with torch.no_grad():
+            samples = samples.reshape((-1, 3, 32, 32)) # shape: (num_estimator_mc_samples, channels, height, width)
+            samples = self.transform(samples) # shape: (num_estimator_mc_samples, channels, 224, 224) for the input format to ResNet18
+            energy = -self.classifier(samples)[:, self.cls] # shape: (num_estimator_mc_samples,)
+        return energy
 
-    @property
-    def dimensionality(self):
-        return 2
 
     def log_on_epoch_end(
         self,

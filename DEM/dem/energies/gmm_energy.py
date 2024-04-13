@@ -62,7 +62,7 @@ class GMM(BaseEnergyFunction):
     def setup_test_set(self):
         # test_sample = self.gmm.sample((self.test_set_size,))
         # return test_sample
-        return self.gmm.test_set
+        return self.gmm.test_set # shape: (1000, dimensionality), dtype=torch.float32, device=self.device
 
     def setup_train_set(self):
         train_samples = self.gmm.sample((self.train_set_size,))
@@ -70,7 +70,7 @@ class GMM(BaseEnergyFunction):
 
     def setup_val_set(self):
         val_samples = self.gmm.sample((self.val_set_size,))
-        return val_samples
+        return val_samples # shape: (2000, dimensionality), dtype=torch.float32, device=self.device
 
     def __call__(self, samples: torch.Tensor) -> torch.Tensor:
         if self.should_unnormalize:

@@ -1,7 +1,8 @@
 _target_: dem.energies.classifier_energy.Classifier
 
-dimensionality: 2 # Change this depending on the dataset
-n_mixes: 40
+dimensionality: 3072 # Change this depending on the dataset
+cls: 1 # class from which we want to generate samples
+n_mixes: 1
 loc_scaling: 40
 log_var_scaling: 1.0
 

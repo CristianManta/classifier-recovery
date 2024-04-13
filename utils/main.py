@@ -59,7 +59,7 @@ class ModifiedResNet18(nn.Module):
         self.features = nn.Sequential(*list(original_model.children())[:-1])
         self.fc = nn.Linear(512, num_classes)  # Adapted for CIFAR10 and MNIST
 
-    def forward(self, x):
+    def forward(self, x): # shape: (batch_size, C, H, W)
         x = self.features(x)
         x = torch.flatten(x, 1)  # Flatten the features
         return self.fc(x)

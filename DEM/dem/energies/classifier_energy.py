@@ -60,6 +60,8 @@ class Classifier(BaseEnergyFunction):
             normalization_min=-data_normalization_factor,
             normalization_max=data_normalization_factor,
         )
+    def dummy_energy(self, samples):
+        return torch.zeros(samples.shape[0], device=self.device, dtype=torch.float32)
 
     def setup_test_set(self):
         return torch.rand(1000, self.dimensionality, device=self.device) # shape: (1000, dimensionality), dtype=torch.float32, device=self.device
@@ -77,10 +79,8 @@ class Classifier(BaseEnergyFunction):
             samples = self.unnormalize(samples)
 
         with torch.no_grad():
-            samples = samples.reshape((-1, 3, 32, 32)) # shape: (num_estimator_mc_samples, channels, height, width)
-            samples = self.transform(samples) # shape: (num_estimator_mc_samples, channels, 224, 224) for the input format to ResNet18
-            energy = -self.classifier(samples)[:, self.cls] # shape: (num_estimator_mc_samples,)
-        return energy
+            energy = self.dummy_energy(samples)
+        return energy # shape: (num_estimator_mc_samples,)
 
 
     def log_on_epoch_end(

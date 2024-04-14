@@ -30,7 +30,7 @@ model:
   partial_prior:
     _target_: dem.energies.base_prior.Prior
     _partial_: true
-    dim: 3072 # Change this depending on the dataset
+    dim: 784 # Change this depending on the dataset
 
   clipper:
     _target_: dem.models.components.clipper.Clipper

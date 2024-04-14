@@ -1,7 +1,6 @@
 __pycache__
 slurm*out
 src.egg-info
-.env
 dem_results
 
 # Byte-compiled / optimized / DLL files
@@ -154,7 +153,6 @@ dmypy.json
 configs/local/default.yaml
 /data/
 /logs/
-.env
 
 # Aim logging
 .aim
@@ -166,5 +164,4 @@ configs/local/default.yaml
 playground.ipynb
 
 # Weights and other logs
-*.pth
 *.pt

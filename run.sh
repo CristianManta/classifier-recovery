@@ -18,7 +18,7 @@ job_setup () {
     echo "#!/bin/bash" >> temprun.sh
     echo "#SBATCH --partition=long"  >> temprun.sh
     echo "#SBATCH --cpus-per-task=2" >> temprun.sh
-    echo "#SBATCH --gres=gpu:1" >> temprun.sh
+    echo "#SBATCH --gres=gpu:a100:1" >> temprun.sh
     echo "#SBATCH --mem=$ram" >> temprun.sh
     echo "#SBATCH --time=$time " >>  temprun.sh
     echo "#SBATCH -o $project_path/slurm-%j.out" >> temprun.sh

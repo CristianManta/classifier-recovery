@@ -539,6 +539,10 @@ class DEMLitModule(LightningModule):
             self.last_samples = self.generate_samples(diffusion_scale=self.diffusion_scale)
             self.last_energies = self.energy_function(self.last_samples)
             
+            samples = self.last_samples.reshape((-1, 1, 28, 28))
+            samples = self.energy_function.transform(samples)
+            energies_to_save = self.energy_function.classifier(samples)
+            
             if not os.path.exists("last_samples.pt"):
                 torch.save(self.last_samples.cpu().unsqueeze(0), 'last_samples.pt')
             else: 
@@ -547,10 +551,10 @@ class DEMLitModule(LightningModule):
                 torch.save(current_saved_samples, 'last_samples.pt')
 
             if not os.path.exists("last_energies.pt"):
-                torch.save(self.last_energies.cpu().unsqueeze(0), 'last_energies.pt')
+                torch.save(energies_to_save.cpu().unsqueeze(0), 'last_energies.pt')
             else:
                 current_saved_energies = torch.load('last_energies.pt')
-                current_saved_energies = torch.cat([current_saved_energies, self.last_energies.cpu().unsqueeze(0)], dim=0)
+                current_saved_energies = torch.cat([current_saved_energies, energies_to_save.cpu().unsqueeze(0)], dim=0)
                 torch.save(current_saved_energies, 'last_energies.pt')
 
         self.buffer.add(self.last_samples, self.last_energies)

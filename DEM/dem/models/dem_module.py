@@ -1,4 +1,5 @@
 import time
+import os
 from typing import Any, Dict, Optional
 
 import hydra
@@ -537,6 +538,20 @@ class DEMLitModule(LightningModule):
         else:
             self.last_samples = self.generate_samples(diffusion_scale=self.diffusion_scale)
             self.last_energies = self.energy_function(self.last_samples)
+            
+            if not os.path.exists("last_samples.pt"):
+                torch.save(self.last_samples.cpu().unsqueeze(0), 'last_samples.pt')
+            else: 
+                current_saved_samples = torch.load('last_samples.pt')
+                current_saved_samples = torch.cat([current_saved_samples, self.last_samples.cpu().unsqueeze(0)], dim=0)
+                torch.save(current_saved_samples, 'last_samples.pt')
+
+            if not os.path.exists("last_energies.pt"):
+                torch.save(self.last_energies.cpu().unsqueeze(0), 'last_energies.pt')
+            else:
+                current_saved_energies = torch.load('last_energies.pt')
+                current_saved_energies = torch.cat([current_saved_energies, self.last_energies.cpu().unsqueeze(0)], dim=0)
+                torch.save(current_saved_energies, 'last_energies.pt')
 
         self.buffer.add(self.last_samples, self.last_energies)
 

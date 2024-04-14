@@ -81,7 +81,7 @@ class Classifier(BaseEnergyFunction):
         with torch.no_grad():
             samples = samples.reshape((-1, 1, 28, 28)) # shape: (num_estimator_mc_samples, channels, height, width)
             samples = self.transform(samples)
-            energy = -self.classifier(samples)[:, self.cls] # shape: (num_estimator_mc_samples,)
+            energy = self.classifier(samples)[:, self.cls] # shape: (num_estimator_mc_samples,)
         return energy
 
 

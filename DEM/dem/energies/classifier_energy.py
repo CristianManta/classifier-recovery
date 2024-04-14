@@ -95,46 +95,6 @@ class Classifier(BaseEnergyFunction):
         replay_buffer=None,
         prefix: str = "",
     ) -> None:
-        if wandb_logger is None:
-            return
-
-        if len(prefix) > 0 and prefix[-1] != "/":
-            prefix += "/"
-
-        if self.curr_epoch % self.plot_samples_epoch_period == 0:
-            if self.should_unnormalize:
-                # Don't unnormalize CFM samples since they're in the
-                # unnormalized space
-                if latest_samples is not None:
-                    latest_samples = self.unnormalize(latest_samples)
-
-                if unprioritized_buffer_samples is not None:
-                    unprioritized_buffer_samples = self.unnormalize(unprioritized_buffer_samples)
-
-            if unprioritized_buffer_samples is not None:
-                buffer_samples, _, _ = replay_buffer.sample(self.plotting_buffer_sample_size)
-                if self.should_unnormalize:
-                    buffer_samples = self.unnormalize(buffer_samples)
-
-                samples_fig = self.get_dataset_fig(buffer_samples, latest_samples)
-
-                wandb_logger.log_image(f"{prefix}unprioritized_buffer_samples", [samples_fig])
-
-            if cfm_samples is not None:
-                cfm_samples_fig = self.get_dataset_fig(unprioritized_buffer_samples, cfm_samples)
-
-                wandb_logger.log_image(f"{prefix}cfm_generated_samples", [cfm_samples_fig])
-
-            if latest_samples is not None:
-                fig, ax = plt.subplots()
-                ax.scatter(*latest_samples.detach().cpu().T)
-
-                wandb_logger.log_image(f"{prefix}generated_samples_scatter", [fig_to_image(fig)])
-                img = self.get_single_dataset_fig(latest_samples, "dem_generated_samples")
-                wandb_logger.log_image(f"{prefix}generated_samples", [img])
-
-            plt.close()
-
         self.curr_epoch += 1
 
     def log_samples(

@@ -9,7 +9,7 @@ from dem.energies.base_energy_function import BaseEnergyFunction
 from dem.models.components.replay_buffer import ReplayBuffer
 from dem.utils.logging_utils import fig_to_image
 
-from utils.main import ModifiedResNet18
+from utils.main import ModifiedResNet18, CustomCNN
 import torchvision.transforms as transforms
 
 
@@ -49,18 +49,18 @@ class Classifier(BaseEnergyFunction):
         self.name = "classifier"
         self.cls = cls
         
-        self.classifier = ModifiedResNet18(num_classes=10).to(self.device).eval()
-        self.transform = transforms.Compose([
-            transforms.Resize(224),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ])
+        self.classifier = CustomCNN(num_classes=10)
+        self.classifier.load_state_dict(torch.load("CustomCNN-weights.pth"))
+        self.classifier.to(self.device)
+        self.classifier.eval()
+        self.transform = transforms.Normalize((0.1307,), (0.3081,))
 
         super().__init__(
             dimensionality=dimensionality,
             normalization_min=-data_normalization_factor,
             normalization_max=data_normalization_factor,
         )
-    def dummy_energy(self, samples):
+    def dummy_energy(self, samples): # Used for debugging
         return torch.zeros(samples.shape[0], device=self.device, dtype=torch.float32)
 
     def setup_test_set(self):
@@ -79,8 +79,10 @@ class Classifier(BaseEnergyFunction):
             samples = self.unnormalize(samples)
 
         with torch.no_grad():
-            energy = self.dummy_energy(samples)
-        return energy # shape: (num_estimator_mc_samples,)
+            samples = samples.reshape((-1, 1, 28, 28)) # shape: (num_estimator_mc_samples, channels, height, width)
+            samples = self.transform(samples)
+            energy = -self.classifier(samples)[:, self.cls] # shape: (num_estimator_mc_samples,)
+        return energy
 
 
     def log_on_epoch_end(

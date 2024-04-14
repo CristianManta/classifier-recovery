@@ -9,6 +9,7 @@ from torchvision.models import resnet18
 import torchvision.transforms as transforms
 import numpy as np
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize, Lambda
+import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -63,6 +64,27 @@ class ModifiedResNet18(nn.Module):
         x = self.features(x)
         x = torch.flatten(x, 1)  # Flatten the features
         return self.fc(x)
+    
+class CustomCNN(nn.Module):
+    def __init__(self, num_classes=10):
+        super(CustomCNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout1 = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(64 * 14 * 14, 128)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(128, num_classes)
+
+    def forward(self, x): # shape: (batch_size, 1, 28, 28)
+        x = F.relu(self.conv1(x))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = F.relu(self.fc1(x))
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        return x # shape: (batch_size, num_classes)
 
 def train_model(model, dataloader, epochs=10, device='cuda'):
     criterion = torch.nn.CrossEntropyLoss()

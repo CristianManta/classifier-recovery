@@ -65,9 +65,9 @@ class ModifiedResNet18(nn.Module):
         x = torch.flatten(x, 1)  # Flatten the features
         return self.fc(x)
     
-class CustomCNN(nn.Module):
+class CustomCNN28(nn.Module):
     def __init__(self, num_classes=10):
-        super(CustomCNN, self).__init__()
+        super(CustomCNN28, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.pool = nn.MaxPool2d(2, 2)
@@ -85,6 +85,28 @@ class CustomCNN(nn.Module):
         x = self.dropout2(x)
         x = self.fc2(x)
         return x # shape: (batch_size, num_classes)
+    
+class CustomCNN10(nn.Module):
+    def __init__(self, num_classes=10):
+        super(CustomCNN10, self).__init__()
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1)  # Output: (batch_size, 16, 10, 10)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=0)  # Output: (batch_size, 32, 8, 8)
+        self.pool = nn.MaxPool2d(2, 2)  # Output: (batch_size, 32, 4, 4)
+        self.dropout1 = nn.Dropout(0.25)
+        self.fc1 = nn.Linear(32 * 4 * 4, 64)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(64, num_classes)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = F.relu(self.fc1(x))
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        return x
 
 def train_model(model, dataloader, epochs=10, device='cuda'):
     criterion = torch.nn.CrossEntropyLoss()

@@ -9,7 +9,7 @@ from dem.energies.base_energy_function import BaseEnergyFunction
 from dem.models.components.replay_buffer import ReplayBuffer
 from dem.utils.logging_utils import fig_to_image
 
-from utils.main import ModifiedResNet18, CustomCNN
+from utils.main import ModifiedResNet18, CustomCNN10
 import torchvision.transforms as transforms
 
 
@@ -29,7 +29,9 @@ class Classifier(BaseEnergyFunction):
         train_set_size=100000,
         test_set_size=2000,
         val_set_size=2000,
-        cls=0 # index of the class that we want to sample from
+        cls=0, # index of the class that we want to sample from
+        resize_shape=10, # Size to rescale the images to
+        energy_type='log_prob' # Choices: 'log_prob' or 'logit'
     ):
         use_gpu = device != "cpu"
         torch.manual_seed(0)
@@ -48,12 +50,14 @@ class Classifier(BaseEnergyFunction):
 
         self.name = "classifier"
         self.cls = cls
+        self.resize_shape = resize_shape
+        self.energy_type = energy_type
         
-        self.classifier = CustomCNN(num_classes=10)
-        self.classifier.load_state_dict(torch.load("CustomCNN-weights.pth"))
+        self.classifier = CustomCNN10(num_classes=10)
+        self.classifier.load_state_dict(torch.load("CustomCNN-weights10.pth"))
         self.classifier.to(self.device)
         self.classifier.eval()
-        self.transform = transforms.Normalize((0.1307,), (0.3081,))
+        self.transform = transforms.Resize(self.resize_shape)
 
         super().__init__(
             dimensionality=dimensionality,
@@ -81,8 +85,12 @@ class Classifier(BaseEnergyFunction):
         with torch.no_grad():
             samples = samples.reshape((-1, 1, 28, 28)) # shape: (num_estimator_mc_samples, channels, height, width)
             samples = self.transform(samples)
-            energy = self.classifier(samples)[:, self.cls] # shape: (num_estimator_mc_samples,)
-        return energy
+            if self.energy_type == 'logit':
+                energy = self.classifier(samples)[:, self.cls]
+            elif self.energy_type == 'log_prob':
+                all_logits = self.classifier(samples)
+                energy = all_logits[:, self.cls] - torch.logsumexp(all_logits, dim=1)
+        return energy # shape: (num_estimator_mc_samples,)
 
 
     def log_on_epoch_end(

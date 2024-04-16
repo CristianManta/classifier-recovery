@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import os
 from typing import Any, Dict, Optional
 
@@ -527,6 +528,9 @@ class DEMLitModule(LightningModule):
 
     def on_train_epoch_end(self) -> None:
         "Lightning hook that is called when a training epoch ends."
+        currentDateAndTime = datetime.now()
+        currentTime = currentDateAndTime.strftime("%H:%M:%S")
+        print(f"time: {currentTime}")
         if self.clipper_gen is not None:
             reverse_sde = VEReverseSDE(
                 self.clipper_gen.wrap_grad_fxn(self.net), self.noise_schedule

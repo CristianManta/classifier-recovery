@@ -161,7 +161,7 @@ configs/local/default.yaml
 *.sw?
 
 # playground
-playground.ipynb
+*.ipynb
 
 # Weights and other logs
 *.pt

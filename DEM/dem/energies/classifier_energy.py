@@ -83,7 +83,7 @@ class Classifier(BaseEnergyFunction):
             samples = self.unnormalize(samples)
 
         with torch.no_grad():
-            samples = samples.reshape((-1, 1, 28, 28)) # shape: (num_estimator_mc_samples, channels, height, width)
+            samples = samples.reshape((-1, 1, 10, 10)) # shape: (num_estimator_mc_samples, channels, height, width)
             samples = self.transform(samples)
             if self.energy_type == 'logit':
                 energy = self.classifier(samples)[:, self.cls]

@@ -2,7 +2,7 @@
 echo 'Submitting SBATCH jobs...'
 
 ################### Define a few global run parameters #######################
-time="39:00:00"
+time="24:00:00"
 ram="32G" # Amount of RAM
 # vram="32gb" # Amount of GPU memory
 

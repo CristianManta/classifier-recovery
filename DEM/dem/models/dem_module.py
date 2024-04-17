@@ -543,7 +543,7 @@ class DEMLitModule(LightningModule):
             self.last_samples = self.generate_samples(diffusion_scale=self.diffusion_scale)
             self.last_energies = self.energy_function(self.last_samples)
             
-            samples = self.last_samples.reshape((-1, 1, 28, 28))
+            samples = self.last_samples.reshape((-1, 1, 10, 10))
             samples = self.energy_function.transform(samples)
             energies_to_save = self.energy_function.classifier(samples)
             

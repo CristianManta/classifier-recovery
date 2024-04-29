@@ -96,7 +96,7 @@ class GMMMLP(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(10, 10),
             nn.LeakyReLU(),
-            nn.Linear(10, 2),
+            nn.Linear(10, 4),
         )
 
     def forward(self, x):

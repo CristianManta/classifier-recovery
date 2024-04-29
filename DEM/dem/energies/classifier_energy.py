@@ -53,7 +53,7 @@ class Classifier(BaseEnergyFunction):
         self.energy_type = energy_type
         
         self.classifier = GMMMLP()
-        self.classifier.load_state_dict(torch.load("GMMMLP-weights-isotropic.pth"))
+        self.classifier.load_state_dict(torch.load("GMMMLP-weights-isotropic-4-components.pth"))
         self.classifier.to(self.device)
         self.classifier.eval()
 

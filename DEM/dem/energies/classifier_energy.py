@@ -9,8 +9,7 @@ from dem.energies.base_energy_function import BaseEnergyFunction
 from dem.models.components.replay_buffer import ReplayBuffer
 from dem.utils.logging_utils import fig_to_image
 
-from utils.main import ModifiedResNet18, CustomCNN10
-import torchvision.transforms as transforms
+from utils.main import ModifiedResNet18, CustomCNN10, GMMMLP
 
 
 class Classifier(BaseEnergyFunction):
@@ -53,11 +52,10 @@ class Classifier(BaseEnergyFunction):
         self.resize_shape = resize_shape
         self.energy_type = energy_type
         
-        self.classifier = CustomCNN10(num_classes=10)
-        self.classifier.load_state_dict(torch.load("CustomCNN-weights10.pth"))
+        self.classifier = GMMMLP()
+        self.classifier.load_state_dict(torch.load("GMMMLP-weights-isotropic.pth"))
         self.classifier.to(self.device)
         self.classifier.eval()
-        self.transform = transforms.Resize(self.resize_shape)
 
         super().__init__(
             dimensionality=dimensionality,
@@ -78,13 +76,11 @@ class Classifier(BaseEnergyFunction):
         val_samples = torch.rand(self.val_set_size, self.dimensionality, device=self.device)
         return val_samples # shape: (2000, dimensionality), dtype=torch.float32, device=self.device
 
-    def __call__(self, samples: torch.Tensor) -> torch.Tensor:
+    def __call__(self, samples: torch.Tensor) -> torch.Tensor: # shape: (num_estimator_mc_samples, dimensionality)
         if self.should_unnormalize:
             samples = self.unnormalize(samples)
 
         with torch.no_grad():
-            samples = samples.reshape((-1, 1, 10, 10)) # shape: (num_estimator_mc_samples, channels, height, width)
-            samples = self.transform(samples)
             if self.energy_type == 'logit':
                 energy = self.classifier(samples)[:, self.cls]
             elif self.energy_type == 'log_prob':

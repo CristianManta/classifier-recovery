@@ -543,23 +543,24 @@ class DEMLitModule(LightningModule):
             self.last_samples = self.generate_samples(diffusion_scale=self.diffusion_scale)
             self.last_energies = self.energy_function(self.last_samples)
             
-            samples = self.last_samples.reshape((-1, 1, 10, 10))
-            samples = self.energy_function.transform(samples)
+            samples = self.last_samples
             energies_to_save = self.energy_function.classifier(samples)
             
-            if not os.path.exists("last_samples.pt"):
-                torch.save(self.last_samples.cpu().unsqueeze(0), 'last_samples.pt')
+            if not os.path.exists("saved_samples/gmm-isotropic/last_samples.pt"):
+                os.makedirs("saved_samples/gmm-isotropic")
+                torch.save(self.last_samples.cpu().unsqueeze(0), 'saved_samples/gmm-isotropic/last_samples.pt')
             else: 
-                current_saved_samples = torch.load('last_samples.pt')
+                current_saved_samples = torch.load('saved_samples/gmm-isotropic/last_samples.pt')
                 current_saved_samples = torch.cat([current_saved_samples, self.last_samples.cpu().unsqueeze(0)], dim=0)
-                torch.save(current_saved_samples, 'last_samples.pt')
+                torch.save(current_saved_samples, 'saved_samples/gmm-isotropic/last_samples.pt')
 
-            if not os.path.exists("last_energies.pt"):
-                torch.save(energies_to_save.cpu().unsqueeze(0), 'last_energies.pt')
+            if not os.path.exists("saved_samples/gmm-isotropic/last_energies.pt"):
+                os.makedirs("saved_samples/gmm-isotropic", exist_ok=True)
+                torch.save(energies_to_save.cpu().unsqueeze(0), 'saved_samples/gmm-isotropic/last_energies.pt')
             else:
-                current_saved_energies = torch.load('last_energies.pt')
+                current_saved_energies = torch.load('saved_samples/gmm-isotropic/last_energies.pt')
                 current_saved_energies = torch.cat([current_saved_energies, energies_to_save.cpu().unsqueeze(0)], dim=0)
-                torch.save(current_saved_energies, 'last_energies.pt')
+                torch.save(current_saved_energies, 'saved_samples/gmm-isotropic/last_energies.pt')
 
         self.buffer.add(self.last_samples, self.last_energies)
 

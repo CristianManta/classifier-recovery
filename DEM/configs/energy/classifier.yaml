@@ -1,10 +1,10 @@
 _target_: dem.energies.classifier_energy.Classifier
 
-dimensionality: 100 # Change this depending on the dataset
+dimensionality: 2 # Change this depending on the dataset
 cls: 0 # class from which we want to generate samples
 resize_shape: 10 # Size to rescale the images to
 energy_type: "log_prob" # Choices: 'log_prob' or 'logit'
-n_mixes: 1
+n_mixes: 2
 loc_scaling: 40
 log_var_scaling: 1.0
 

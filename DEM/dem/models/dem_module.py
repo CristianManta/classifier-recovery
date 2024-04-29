@@ -33,6 +33,8 @@ from .components.score_scaler import BaseScoreScaler
 from .components.sde_integration import integrate_sde
 from .components.sdes import VEReverseSDE
 
+import os
+
 
 def t_stratified_loss(batch_t, batch_loss, num_bins=5, loss_name=None):
     """Stratify loss by binning t."""
@@ -535,6 +537,14 @@ class DEMLitModule(LightningModule):
         else:
             self.last_samples = self.generate_samples(diffusion_scale=self.diffusion_scale)
             self.last_energies = self.energy_function(self.last_samples)
+            if not os.path.exists("saved_samples/gmm-isotropic-debug-learning/last_samples.pt"):
+                os.makedirs("saved_samples/gmm-isotropic-debug-learning")
+                torch.save(self.last_samples.cpu().unsqueeze(0), 'saved_samples/gmm-isotropic-debug-learning/last_samples.pt')
+            else: 
+                current_saved_samples = torch.load('saved_samples/gmm-isotropic-debug-learning/last_samples.pt')
+                current_saved_samples = torch.cat([current_saved_samples, self.last_samples.cpu().unsqueeze(0)], dim=0)
+                torch.save(current_saved_samples, 'saved_samples/gmm-isotropic-debug-learning/last_samples.pt')
+
 
         self.buffer.add(self.last_samples, self.last_energies)
 

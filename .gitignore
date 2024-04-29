@@ -161,3 +161,6 @@ configs/local/default.yaml
 
 # vim
 *.sw?
+
+
+last_samples.pt

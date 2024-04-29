@@ -10,6 +10,8 @@ from dem.models.components.replay_buffer import ReplayBuffer
 from dem.utils.logging_utils import fig_to_image
 
 from utils.main import ModifiedResNet18, CustomCNN10, GMMMLP
+from fab.target_distributions import gmm
+
 
 
 class Classifier(BaseEnergyFunction):
@@ -34,6 +36,15 @@ class Classifier(BaseEnergyFunction):
     ):
         use_gpu = device != "cpu"
         torch.manual_seed(0)
+        
+        self.gmm = gmm.GMM(
+            dim=dimensionality,
+            n_mixes=n_mixes,
+            loc_scaling=loc_scaling,
+            log_var_scaling=log_var_scaling,
+            use_gpu=use_gpu,
+            true_expectation_estimation_n_samples=true_expectation_estimation_n_samples,
+        )
 
         self.curr_epoch = 0
         self.device = device
@@ -80,12 +91,10 @@ class Classifier(BaseEnergyFunction):
         if self.should_unnormalize:
             samples = self.unnormalize(samples)
 
-        with torch.no_grad():
-            if self.energy_type == 'logit':
-                energy = self.classifier(samples)[:, self.cls]
-            elif self.energy_type == 'log_prob':
-                all_logits = self.classifier(samples)
-                energy = all_logits[:, self.cls] - torch.logsumexp(all_logits, dim=1)
+        if self.energy_type == 'logit':
+            energy = self.gmm.log_prob(samples)
+        elif self.energy_type == 'log_prob':
+            energy = self.gmm.log_prob(samples)
         return energy # shape: (num_estimator_mc_samples,)
 
 

@@ -160,8 +160,9 @@ configs/local/default.yaml
 # vim
 *.sw?
 
-# playground
-*.ipynb
+# notebooks
+playground*
+poster*
 
 # Weights and other logs
 *.pt

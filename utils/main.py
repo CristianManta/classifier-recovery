@@ -86,6 +86,22 @@ class CustomCNN28(nn.Module):
         x = self.fc2(x)
         return x # shape: (batch_size, num_classes)
     
+class GMMMLP(nn.Module):
+    def __init__(self):
+        super(GMMMLP, self).__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(2, 10),
+            nn.LeakyReLU(),
+            nn.Linear(10, 10),
+            nn.LeakyReLU(),
+            nn.Linear(10, 10),
+            nn.LeakyReLU(),
+            nn.Linear(10, 2),
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+    
 class CustomCNN10(nn.Module):
     def __init__(self, num_classes=10):
         super(CustomCNN10, self).__init__()

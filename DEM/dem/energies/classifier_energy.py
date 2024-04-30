@@ -82,14 +82,14 @@ class Classifier(BaseEnergyFunction):
         if self.should_unnormalize:
             samples = self.unnormalize(samples)
 
-        with torch.no_grad():
-            samples = samples.reshape((-1, 1, 10, 10)) # shape: (num_estimator_mc_samples, channels, height, width)
-            samples = self.transform(samples)
-            if self.energy_type == 'logit':
-                energy = self.classifier(samples)[:, self.cls]
-            elif self.energy_type == 'log_prob':
-                all_logits = self.classifier(samples)
-                energy = all_logits[:, self.cls] - torch.logsumexp(all_logits, dim=1)
+        samples = samples.reshape((-1, 1, 10, 10)) # shape: (num_estimator_mc_samples, channels, height, width)
+        samples = self.transform(samples)
+        if self.energy_type == 'logit':
+            energy = self.classifier(samples)[:, self.cls]
+        elif self.energy_type == 'log_prob':
+            all_logits = self.classifier(samples)
+            energy = all_logits[:, self.cls] - torch.logsumexp(all_logits, dim=1)
+            
         return energy # shape: (num_estimator_mc_samples,)
 
 

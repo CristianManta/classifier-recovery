@@ -547,19 +547,22 @@ class DEMLitModule(LightningModule):
             samples = self.energy_function.transform(samples)
             energies_to_save = self.energy_function.classifier(samples)
             
-            if not os.path.exists("last_samples.pt"):
-                torch.save(self.last_samples.cpu().unsqueeze(0), 'last_samples.pt')
+            dir = "saved_samples/mnist-unnormalization-gradient-propagation/"
+            if not os.path.exists(dir + "last_samples.pt"):
+                os.makedirs(dir, exist_ok=True)
+                torch.save(self.last_samples.cpu().unsqueeze(0), dir + 'last_samples.pt')
             else: 
-                current_saved_samples = torch.load('last_samples.pt')
+                current_saved_samples = torch.load(dir + 'last_samples.pt')
                 current_saved_samples = torch.cat([current_saved_samples, self.last_samples.cpu().unsqueeze(0)], dim=0)
-                torch.save(current_saved_samples, 'last_samples.pt')
+                torch.save(current_saved_samples, dir + 'last_samples.pt')
 
-            if not os.path.exists("last_energies.pt"):
-                torch.save(energies_to_save.cpu().unsqueeze(0), 'last_energies.pt')
+            if not os.path.exists(dir + "last_energies.pt"):
+                os.makedirs(dir, exist_ok=True)
+                torch.save(energies_to_save.cpu().unsqueeze(0), dir + 'last_energies.pt')
             else:
-                current_saved_energies = torch.load('last_energies.pt')
+                current_saved_energies = torch.load(dir + 'last_energies.pt')
                 current_saved_energies = torch.cat([current_saved_energies, energies_to_save.cpu().unsqueeze(0)], dim=0)
-                torch.save(current_saved_energies, 'last_energies.pt')
+                torch.save(current_saved_energies, dir + 'last_energies.pt')
 
         self.buffer.add(self.last_samples, self.last_energies)
 
@@ -583,7 +586,7 @@ class DEMLitModule(LightningModule):
             _, generated_energies = self.buffer.get_last_n_inserted(self.eval_batch_size)
 
         energies = self.energy_function(self.energy_function.normalize(data_set))
-        energy_w2 = pot.emd2_1d(energies.cpu().numpy(), generated_energies.cpu().numpy())
+        energy_w2 = pot.emd2_1d(energies.cpu().detach().numpy(), generated_energies.cpu().numpy())
 
         self.log(
             f"{prefix}/energy_w2",
